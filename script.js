@@ -1,9 +1,116 @@
+var map;
 var markers = [];
 function initMap() {
-	var map;
+	var styles = [
+    {
+        "featureType": "landscape",
+        "stylers": [
+            {
+                "hue": "#FFBB00"
+            },
+            {
+                "saturation": 43.400000000000006
+            },
+            {
+                "lightness": 37.599999999999994
+            },
+            {
+                "gamma": 1
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "stylers": [
+            {
+                "hue": "#FFC200"
+            },
+            {
+                "saturation": -61.8
+            },
+            {
+                "lightness": 45.599999999999994
+            },
+            {
+                "gamma": 1
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "stylers": [
+            {
+                "hue": "#FF0300"
+            },
+            {
+                "saturation": -100
+            },
+            {
+                "lightness": 51.19999999999999
+            },
+            {
+                "gamma": 1
+            }
+        ]
+    },
+    {
+        "featureType": "road.local",
+        "stylers": [
+            {
+                "hue": "#FF0300"
+            },
+            {
+                "saturation": -100
+            },
+            {
+                "lightness": 52
+            },
+            {
+                "gamma": 1
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "stylers": [
+            {
+                "hue": "#0078FF"
+            },
+            {
+                "saturation": -13.200000000000003
+            },
+            {
+                "lightness": 2.4000000000000057
+            },
+            {
+                "gamma": 1
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "stylers": [
+            {
+                "hue": "#00FF6A"
+            },
+            {
+                "saturation": -1.0989010989011234
+            },
+            {
+                "lightness": 11.200000000000017
+            },
+            {
+                "gamma": 1
+            }
+        ]
+    }
+]
 	map = new google.maps.Map(document.getElementById('map'), {
-	center: {lat: 40.719526, lng: -74.0089934},
-	zoom: 8
+		center: {lat: 40.719526, lng: -74.0089934},
+		zoom: 8,
+		styles: styles, //styles applied to the map
+		mapTypeControl: false, //disables user from changing map to satellite or terrain, etc...
+		streetViewControl: true //false takes away street view pegman to user
 	});
 
 	var eachinfoWindow = new google.maps.InfoWindow();
@@ -54,17 +161,49 @@ function initMap() {
 
 		marker.addListener('click', function() {
 			//'this' means the marker that was clicked
-			nicksfunction(this, eachinfoWindow)
+			createInfoWindow(this, eachinfoWindow)
 			console.log(this)
 
 		});
 	})
 
 
-	function nicksfunction(marker, infowindow) {
+	function createInfoWindow(marker, infowindow) {
 		if (infowindow.marker != marker) {
 			infowindow.marker = marker;
-			infowindow.setContent('<div>' + marker.title + marker.coordinates.lat + marker.coordinates.lng + '</div>');
+			
+
+
+			var streetViewService = new google.maps.StreetViewService();
+			var radius = 50;
+
+			function getStreetView(data, status) {
+				if (status == google.maps.StreetViewStatus.OK) {
+					var nearestStreetViewLocation = data.location.latLng;
+
+					//computeheading() allows us to specify the direction the camera is looking towards.. calculated by passing two latlng objects.. in this case the nearest availble latlng and the latlng of the actual address
+					var heading = google.maps.geometry.spherical.computeHeading(nearestStreetViewLocation, marker.position);
+
+					//set the content with the pano div to display the streetview
+					infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
+
+					var panoramicOptions = {
+						position: nearestStreetViewLocation,
+						pov: {
+							heading: heading,
+							pitch: 30
+						}
+					};
+					
+					//actually creating the panorama object and placing it inside the div we created in the infowindow
+					var panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramicOptions)
+
+				}
+			}
+
+			streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
+
+
 			infowindow.open(map, marker);
 
 			infowindow.addListener('closeclick', function() {
