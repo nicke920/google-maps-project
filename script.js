@@ -1,5 +1,9 @@
 var map;
 var markers = [];
+
+var polygon;
+
+
 function initMap() {
 	var styles = [
     {
@@ -127,113 +131,180 @@ function initMap() {
 	        ];
 
 
-	//looping through locations and spitting out a marker onto the map
-	//to add more info to each marker, we simply add it to the Marker object...here we added coordinates and icon to it
+        //looping through locations and spitting out a marker onto the map
+        //to add more info to each marker, we simply add it to the Marker object...here we added coordinates and icon to it
 
-	var mapIcon;
+        var mapIcon;
 
-	function typeOfIcon(place) {
-		if (place.location.lng > -73.9638) {
-			mapIcon = 'map-marker.png'
-		} else {
-			mapIcon = 'map-marker1.png'
-		}
-	}
+        function typeOfIcon(place) {
+            if (place.location.lng > -73.9638) {
+                mapIcon = 'map-marker.png'
+            } else {
+                mapIcon = 'map-marker1.png'
+            }
+        }
 
-	$.each(locations, function(i, location) {
-		typeOfIcon(location)
-		var title = location.title;
-		var position = location.location;
+        $.each(locations, function(i, location) {
+            typeOfIcon(location)
+            var title = location.title;
+            var position = location.location;
 
-		var marker = new google.maps.Marker({
-			position: position, 
-			coordinates: position,
-			icon: mapIcon,
-			title: title,
-			animation: google.maps.Animation.DROP,
-			id: i
-		})
+            var marker = new google.maps.Marker({
+                position: position, 
+                coordinates: position,
+                icon: mapIcon,
+                title: title,
+                animation: google.maps.Animation.DROP,
+                id: i
+            })
 
-		markers.push(marker)
+            markers.push(marker)
 
-		//extends the boundries of the map to fit each marker
-
-
-		marker.addListener('click', function() {
-			//'this' means the marker that was clicked
-			createInfoWindow(this, eachinfoWindow)
-			console.log(this)
-
-		});
-	})
+            //extends the boundries of the map to fit each marker
 
 
-	function createInfoWindow(marker, infowindow) {
-		if (infowindow.marker != marker) {
-			infowindow.marker = marker;
-			
+            marker.addListener('click', function() {
+                //'this' means the marker that was clicked
+                createInfoWindow(this, eachinfoWindow)
+                console.log(this)
+
+            });
+        })
 
 
-			var streetViewService = new google.maps.StreetViewService();
-			var radius = 50;
-
-			function getStreetView(data, status) {
-				if (status == google.maps.StreetViewStatus.OK) {
-					var nearestStreetViewLocation = data.location.latLng;
-
-					//computeheading() allows us to specify the direction the camera is looking towards.. calculated by passing two latlng objects.. in this case the nearest availble latlng and the latlng of the actual address
-					var heading = google.maps.geometry.spherical.computeHeading(nearestStreetViewLocation, marker.position);
-
-					//set the content with the pano div to display the streetview
-					infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
-
-					var panoramicOptions = {
-						position: nearestStreetViewLocation,
-						pov: {
-							heading: heading,
-							pitch: 30
-						}
-					};
-					
-					//actually creating the panorama object and placing it inside the div we created in the infowindow
-					var panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramicOptions)
-
-				}
-			}
-
-			streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
+        function createInfoWindow(marker, infowindow) {
+            if (infowindow.marker != marker) {
+                infowindow.marker = marker;
+                
 
 
-			infowindow.open(map, marker);
+                var streetViewService = new google.maps.StreetViewService();
+                var radius = 50;
 
-			infowindow.addListener('closeclick', function() {
-				infowindow.close()
-			})
-		}
-	}
+                function getStreetView(data, status) {
+                    if (status == google.maps.StreetViewStatus.OK) {
+                        var nearestStreetViewLocation = data.location.latLng;
+
+                        //computeheading() allows us to specify the direction the camera is looking towards.. calculated by passing two latlng objects.. in this case the nearest availble latlng and the latlng of the actual address
+                        var heading = google.maps.geometry.spherical.computeHeading(nearestStreetViewLocation, marker.position);
+
+                        //set the content with the pano div to display the streetview
+                        infowindow.setContent('<div>' + marker.title + '</div><div id="pano"></div>');
+
+                        var panoramicOptions = {
+                            position: nearestStreetViewLocation,
+                            pov: {
+                                heading: heading,
+                                pitch: 30
+                            }
+                        };
+                        
+                        //actually creating the panorama object and placing it inside the div we created in the infowindow
+                        var panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'), panoramicOptions)
+
+                    }
+                }
+
+                streetViewService.getPanoramaByLocation(marker.position, radius, getStreetView);
 
 
-	function showListings() {
-		var bounds = new google.maps.LatLngBounds();
+                infowindow.open(map, marker);
 
-		$.each(markers, function(i, marker) {
-			marker.setMap(map)
-			bounds.extend(marker.position)
-		})
+                infowindow.addListener('closeclick', function() {
+                    infowindow.close()
+                })
+            }
+        }
 
-		map.fitBounds(bounds)
-	}
 
-	function hideListings() {
-		$.each(markers, function(i, marker) {
-			marker.setMap(null) //by setting it to null, it doesnt delete em off page, just hides them
-		})
-	}
+        function showListings() {
+            var bounds = new google.maps.LatLngBounds();
+
+            $.each(markers, function(i, marker) {
+                marker.setMap(map)
+                bounds.extend(marker.position)
+            })
+
+            map.fitBounds(bounds)
+        }
+
+        function hideListings() {
+            $.each(markers, function(i, marker) {
+                marker.setMap(null) //by setting it to null, it doesnt delete em off page, just hides them
+            })
+        }
+
+
+
+
+
+    //initializing drawing manager
+    var drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: google.maps.drawing.OverlayType.POLYGON, //default drawing mode
+        drawingControl: true, 
+        drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_LEFT, 
+            drawingModes: [google.maps.drawing.OverlayType.POLYGON] //available drawing modes
+        }
+    })
+
+    function toggleDrawing() {
+        //if the drawing manager has a map property already, disable it to null... else add it to the drawing manager.... this basically enables the drawing manager on the overlay
+        if (drawingManager.map) {
+            drawingManager.setMap(null);
+            if (polygon) {
+                polygon.setMap(null)
+            }
+        } else {
+            drawingManager.setMap(map);
+        }
+        console.log(drawingManager)
+    }
+
+    drawingManager.addListener('overlaycomplete', function(e) {
+        console.log('e', e)
+        //first, if there already is another polygon, get rid of it and remove the markers
+        if (polygon) {
+            polygon.setMap(null);
+            hideListings();
+        }
+        
+        //switch pointer to the hand instead of the drawing one
+        drawingManager.setDrawingMode(null);
+
+        //being able to edit the polygon once its been created
+        polygon = e.overlay;
+        polygon.setEditable(true);
+
+        searchWithinThePolygon();
+
+        polygon.getPath().addListener('set_at', searchWithinThePolygon)
+        polygon.getPath().addListener('insert_at', searchWithinThePolygon)
+
+    })
+
+    function searchWithinThePolygon() {
+        //loops through the markers array, and if the marker's position is within the polygon area, set it to the map... else hide it.
+        $.each(markers, function(index, marker) {
+            if (google.maps.geometry.poly.containsLocation(marker.position, polygon)) {
+                marker.setMap(map);
+            } else {
+                marker.setMap(null);
+            }
+        })
+    }
+
+
+   
 
 	//by adding this click event, we still load our info into the markers array on initialize, but hold off on showing it on the map. OnClick, we loop through markers array, and setMap() puts the marker on the page, and we set the bounds of the map
 	document.getElementById('show-listings').addEventListener('click', showListings)
 
 	document.getElementById('hide-listings').addEventListener('click', hideListings)
+
+    document.getElementById('toggle-drawing').addEventListener('click', function() {
+        toggleDrawing(drawingManager)
+    })
 
 
 }
