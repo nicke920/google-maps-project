@@ -362,6 +362,10 @@ function initMap() {
                 if (status === google.maps.GeocoderStatus.OK) {
                     map.setCenter(results[0].geometry.location)
                     map.setZoom(15)
+                    $('#formatted').text(results[0].formattedaddress)
+                    $('#location').text(results[0].formattedaddress)
+                    // $('#location').text(results[0].address_components[0].long_name)
+                    console.log(results)
                 }
                 
             })
