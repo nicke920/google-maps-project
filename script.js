@@ -250,6 +250,8 @@ function initMap() {
 
     function toggleDrawing() {
         //if the drawing manager has a map property already, disable it to null... else add it to the drawing manager.... this basically enables the drawing manager on the overlay
+
+        //pt.2: once user done polygon and clicks the toggle polygon btn again, we want to get rid of the polygon from the map
         if (drawingManager.map) {
             drawingManager.setMap(null);
             if (polygon) {
