@@ -308,5 +308,66 @@ function initMap() {
         toggleDrawing(drawingManager)
     })
 
+    document.getElementById('zoom-to-area').addEventListener('click', function() {
+        zoomToArea();
+    })
+    document.getElementById('zoom-to-area2').addEventListener('click', function() {
+        geoCodeAddress();
+    })
+
+    //     $('#zoom-to-area').on('click', function() {
+    //     zoomToArea();
+    // })
+
+    function zoomToArea() {
+        var geocoder = new google.maps.Geocoder;
+
+        var address = $('#zoom-to-area-text').val();
+
+        if (address === '') {
+            alert('Cannot enter a blank address')
+        } else {
+            geocoder.geocode({
+                address: address, 
+                componentRestrictions: {        //restricts the search to only be within the New York locality
+                    locality: "New York"
+                }
+            }, function(results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+
+                    map.setCenter(results[0].geometry.location);
+                    map.setZoom(15);
+                } else {
+                    alert('sorry could not be found')
+                }
+            })
+        }
+    }
+
+    function geoCodeAddress() {
+        //create new instance of Geocoder class
+        var geocoder = new google.maps.Geocoder;
+
+        //get value from input
+        var address = $('#zoom-to-area-text2').val();
+
+
+        //if input is blank, alert user... else, geocode the input passing in address parameter.. then use callback to execute upon retrieval of results.. this callback takes a results and status parameter
+        if (address === '') {
+            alert('its blank')
+        } else {
+            geocoder.geocode({
+                address: address
+            }, function(results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    map.setCenter(results[0].geometry.location)
+                    map.setZoom(15)
+                }
+                
+            })
+        }
+    }
+
+    
 
 }
